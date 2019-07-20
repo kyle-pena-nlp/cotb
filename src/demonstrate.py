@@ -1,6 +1,7 @@
 import sys, time
 from numpy.random import random
-from grid import Grid
+from grid import *
+from puzzle import *
 from depth_first_search import depth_first_search
 from breadth_first_search import breadth_first_search
 from best_first_search import best_first_search
@@ -9,6 +10,13 @@ import instrumentation
 
 algo_choice  = sys.argv[1]
 space_choice = sys.argv[2]
+
+if space_choice == "grid":
+    graph = Grid((25,50), obstacles = [(10,20,15,25), (5,15,30,35)], start = (12,12), goal = (12,37))
+elif space_choice == "puzzle":
+    graph = PuzzleGraph()
+
+start = graph.start_position()
 
 if algo_choice == "depthfirst":
     algorithm = depth_first_search(start)
@@ -19,13 +27,9 @@ elif algo_choice == "bestfirst":
 elif algo_choice == "iterativedeepening":
     algorithm = iterative_deepening(start)
 
-if space_choice == "grid":
-    graph = Grid((25,50), obstacles = [(10,20,15,25), (5,15,30,35)], start = (12,12), goal = (12,37))
-elif space_choice == "puzzle":
-    graph = Puzzle()
 
 
-start = graph.start_position()
+
 
 next(algorithm)
 
@@ -38,21 +42,24 @@ def handle_close(evt):
 fig = graph.init_viz()
 fig.canvas.mpl_connect('close_event', handle_close)
 
+path = None
+
 while True:
+
     try:
+
         current, visited, queued = algorithm.send(0)
 
+        snapshot = instrumentation.take_snapshot()        
+        
         if current.is_goal():
-            print("Goal!!!!!")
-
-        #graph.mark_queued(queued)    
-        #graph.mark_visited(visited)
-        #graph.mark_current(current)
-        instrumentation.take_snapshot()        
-        graph.redraw(queued, visited, current, snapshot)
+            print("Goal!!!!")
+        
+        graph.redraw(queued, visited, current, current.path(), snapshot)
+        
     except StopIteration:
-        print("Booya!")
+        print("Finished.")
         break
 
-input("...")
+input("Press [ENTER] to close.")
     

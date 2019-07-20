@@ -58,6 +58,16 @@ class GridNode:
         goal_y, goal_x = self._grid._goal
         return (self._y - goal_y) ** 2.0 + (self._x - goal_x) ** 2.0
 
+    def path(self):
+        path = []
+        x = self
+        while True:
+            path.append(x)
+            if x.parent is None:
+                break
+            x = x.parent
+        return path
+
     # value comparison only
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and self._y == other._y and self._x == other._x)
@@ -153,7 +163,7 @@ class Grid:
             else:
                 self._grid[y,x] = Grid.QUEUED
 
-    def mark_path(self, nodes):
+    def _mark_path(self, nodes):
         if nodes is None:
             return
         # TODO
@@ -162,8 +172,12 @@ class Grid:
             self._grid[y,x] = Grid.PATH
 
     def init_viz(self):
-        fig, (img_plot, ops_plot, space_plot) = plt.subplots(3,1)
+        #fig, (img_plot, ops_plot, space_plot) = plt.subplots(3,1)
 
+        fig = plt.figure()
+        img_plot = plt.subplot(221)
+        ops_plot = plt.subplot(223)
+        space_plot = plt.subplot(122)
 
         #fig = plt.figure(constrained_layout=True)
 
@@ -174,8 +188,8 @@ class Grid:
 
         img_plot.axis("off")
         img_plot.set_aspect('auto')
-        ops_plot.set_title("Total Queue/Set Operations")
-        space_plot.set_title("Total Queue/Set Size")
+        ops_plot.set_title("Operations Performed")
+        space_plot.set_title("Space Allocated")
 
         self._fig = fig
         self._img = img_plot.imshow(self._grid)

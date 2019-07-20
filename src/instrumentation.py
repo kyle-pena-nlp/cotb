@@ -7,8 +7,8 @@ ops   = []
 space = []
 
 def take_snapshot():
-    ops.append(get_total_ops())
-    space.append(get_total_space())
+    ops.append(_get_total_ops())
+    space.append(_get_total_space())
     return {
         "ops": ops,
         "space": space

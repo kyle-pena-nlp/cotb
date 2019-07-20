@@ -1,102 +1,124 @@
-import math
+import math, random
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from instrumentation import ops, space
 
-class GridNode:
+class PuzzleState:
 
-    def __init__(self, grid, start, parent = None):
-        self._grid = grid
-        self._y, self._x = start
+    SOLVED_STATES = {}
+
+    @staticmethod
+    def get_solved_state(side_length):
+        if side_length not in PuzzleState.SOLVED_STATES:
+            numbers = np.full(side_length ** 2, 0, dtype = np.uint8)
+            numbers[:(side_length ** 2 // 2)]  = range(1,side_length ** 2 // 2 + 1)
+            numbers[-(side_length ** 2 // 2):] = range(side_length ** 2 // 2 + 1, side_length ** 2)
+            solved = PuzzleState(numbers.reshape((side_length, side_length)))
+            PuzzleState.SOLVED_STATES[side_length] = solved
+        return PuzzleState.SOLVED_STATES[side_length]
+
+    def __init__(self, state, parent = None):
+        self._state = state
+        self._size  = state.shape[0]
         self.parent = parent
 
     def children(self):
 
-        # 4-Neighbors, starting at 12 o clock and then clockwise
-        
-        children = [
-            (self._y - 1, self._x + 0),
-            (self._y - 1, self._x + 1),
-            (self._y + 0, self._x + 1),
-            (self._y + 1, self._x + 1),
-            (self._y + 1, self._x + 0),
-            (self._y + 1, self._x - 1),
-            (self._y + 0, self._x - 1),
-            (self._y - 1, self._x - 1),
+        children = []
+
+        # Find coordinates of zero entry
+        ((y,), (x,)) = (self._state == 0).nonzero()
+
+        # Get all piece positions around the empty slot
+        pieces_around_empty_slot = [
+            [y - 1, x - 1],
+            [y - 1, x    ],
+            [y - 1, x + 1],
+            [y,     x - 1],
+
+            [y,     x + 1],
+            [y + 1, x - 1],
+            [y + 1, x    ],
+            [y + 1, x + 1],
         ]
 
-        """
-        c1 = (self._y - 1, self._x)
-        if self._grid.has_position(c1):
-            children.append(self._make_node(c1))           
+        # 
+        for (_y,_x) in pieces_around_empty_slot:
+            
+            # Invalid piece position
+            if _y < 0 or _y >= self._size:
+                continue
+            
+            # Invalid piece position
+            if _x < 0 or _x >= self._size:
+                continue
+            
+            # Slide the piece
+            child = np.copy(self._state)
+            child[y,  x] = child[_y, _x]
+            child[_y,_x] = 0
+            
+            # Valid piece to slide into the empty slot
+            children.append(self._make_node(child))
 
-        c3 = (self._y + 1, self._x)
-        if self._grid.has_position(c3):
-            children.append(self._make_node(c3))
+        return children
 
-        c4 = (self._y,     self._x - 1)
-        if self._grid.has_position(c4):
-            children.append(self._make_node(c4))
-
-        c2 = (self._y,     self._x + 1)
-        if self._grid.has_position(c2):
-            children.append(self._make_node(c2)) 
-        """
-
-        return [ self._make_node(child) for child in children if self._grid.has_position(child) ]
-
-    def pos(self):
-        return self._y, self._x
+    def shuffle(self, n = 50):
+        x = self
+        for i in range(n):
+            x = random.choice(x.children())
+            x.parent = None
+        self._state = x._state
+        self._size = self._state.shape[0]
+        self._parent = None
 
     def is_goal(self):
-        goal_y, goal_x = self._grid._goal
-        if self._y == goal_y and self._x == goal_x:
-            return True
-        return False
+        return np.array_equal(self._state, PuzzleState.SOLVED[self._size])
 
     def distance(self):
-        goal_y, goal_x = self._grid._goal
-        return (self._y - goal_y) ** 2.0 + (self._x - goal_x) ** 2.0
+        cost = 0
+        for y in range(self._size):
+            for x in range(self._size):
+                value = self._state[y,x]
+                flat_index = value if value - 1 <= self._size // 2 else value
+                solved_y = flat_index // self._size
+                solved_x = flat_index %  self._size
+                cost += abs(y - solved_y) + abs(x - solved_x)        
+        return cost
+
+    def path(self):
+        path = []
+        x = self
+        while True:
+            path.append(x)
+            if x.parent is None:
+                break
+            x = x.parent
+        return path
 
     # value comparison only
     def __eq__(self, other):
-        return (isinstance(other, self.__class__) and self._y == other._y and self._x == other._x)
+        return (isinstance(other, self.__class__) and np.array_equal(self._state, other._state)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash((self._y, self._x))
+        # TODO: more efficient hashing
+        return hash(self._state.data.tobytes())
 
-    def _make_node(self, pos):
-        return GridNode(self._grid, pos, self)
+    def _make_node(self, state):
+        return GridNode(state, self)
 
-class Grid:
+class PuzzleGraph:
 
     BLANK    = 0
-    VISITED  = 1
-    OBSTACLE = 2
-    QUEUED   = 3
-    GOAL     = 4
-    QUEUED_GOAL = 5
-    CURRENT = 6
-    START   = 7
 
-    def __init__(self, size, obstacles, start, goal):
-
-        self._Y, self._X = size
-        self._grid       = np.zeros(size, dtype = np.uint8)
-        self._start      = start
-        self._goal       = goal
-        self._obstacles  = obstacles
-
-        self._fig = None
-        self._img = None
-        self._ops_plot = None
-        self._space_plot = None
-
-        self.reinit_grid()
+    def __init__(self, side_length):
+        assert side_length % 2 == 1
+        start.shuffle(n = 50)
+        self._start = start
 
     def reinit_grid(self):
         start_y, start_x = self._start
