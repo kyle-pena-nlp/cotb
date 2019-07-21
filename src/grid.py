@@ -2,6 +2,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
+from instrumentation import INSTANCE_COUNT
 
 class GridNode:
 
@@ -9,6 +10,10 @@ class GridNode:
         self._grid = grid
         self._y, self._x = start
         self.parent = parent
+        INSTANCE_COUNT[0] += 1
+
+    def __del__(self):
+        INSTANCE_COUNT[0] -= 1
 
     def children(self):
 
@@ -25,25 +30,7 @@ class GridNode:
             (self._y - 1, self._x - 1),
         ]
 
-        """
-        c1 = (self._y - 1, self._x)
-        if self._grid.has_position(c1):
-            children.append(self._make_node(c1))           
-
-        c3 = (self._y + 1, self._x)
-        if self._grid.has_position(c3):
-            children.append(self._make_node(c3))
-
-        c4 = (self._y,     self._x - 1)
-        if self._grid.has_position(c4):
-            children.append(self._make_node(c4))
-
-        c2 = (self._y,     self._x + 1)
-        if self._grid.has_position(c2):
-            children.append(self._make_node(c2)) 
-        """
-
-        return [ self._make_node(child) for child in children if self._grid.has_position(child) ]
+        return [ self._make_node(child) for child in children if self._grid._has_position(child) ]
 
     def pos(self):
         return self._y, self._x
@@ -119,10 +106,10 @@ class Grid:
         self._grid[goal_y, goal_x] = Grid.GOAL
                 
 
-    def start_position(self):
+    def start_node(self):
         return GridNode(self, self._start)
 
-    def has_position(self, pos):
+    def _has_position(self, pos):
 
         # De-structure position
         y, x = pos

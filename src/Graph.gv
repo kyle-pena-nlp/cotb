@@ -1,0 +1,5 @@
+graph {
+	A [label=123]
+	B [label=456]
+	A -- B
+}

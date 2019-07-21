@@ -2,23 +2,24 @@ import math, time
 import wrapt
 from collections import deque
 
-INSTANCES = []
+INSTRUMENTED_COLLECTIONS = []
+INSTANCE_COUNT = [0]
 ops   = []
 space = []
 
 def take_snapshot():
     ops.append(_get_total_ops())
-    space.append(_get_total_space())
+    space.append(INSTANCE_COUNT[0])
     return {
         "ops": ops,
         "space": space
     }
 
 def _get_total_ops():
-    return sum(instance.get_ops() for instance in INSTANCES)
+    return sum(instance.get_ops() for instance in INSTRUMENTED_COLLECTIONS)
 
 def _get_total_space():
-    return sum(instance.get_space() for instance in INSTANCES)
+    return sum(instance.get_space() for instance in INSTRUMENTED_COLLECTIONS)
 
 def reset_instrumentation():
     ops.clear()
@@ -35,7 +36,7 @@ class InstrumentedSet(wrapt.ObjectProxy):
         assert type(wrapped) == set
         super(InstrumentedSet, self).__init__(wrapped)
         self._self_ops = 0.0
-        INSTANCES.append(self)
+        INSTRUMENTED_COLLECTIONS.append(self)
 
     def add(self, item):
         self._self_ops += 1.0
@@ -59,7 +60,7 @@ class InstrumentedList(wrapt.ObjectProxy):
         assert type(wrapped) == list
         super(InstrumentedList, self).__init__(wrapped)
         self._self_ops = 0.0
-        INSTANCES.append(self)
+        INSTRUMENTED_COLLECTIONS.append(self)
 
     def append(self, item):
         self._self_ops += 1.0
@@ -125,7 +126,7 @@ class InstrumentedDeque(wrapt.ObjectProxy):
         assert type(wrapped) == deque
         super(InstrumentedDeque, self).__init__(wrapped)
         self._self_ops = 0.0
-        INSTANCES.append(self)
+        INSTRUMENTED_COLLECTIONS.append(self)
 
     def append(self, item):
         self._self_ops += 1.0

@@ -9,6 +9,7 @@ def iterative_deepening(start):
     depths = InstrumentedDeque(deque([ 0     ]))
 
     while not success and not killed:
+        
         visited.clear()
         queue.clear()
         depths.clear()
