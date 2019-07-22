@@ -10,8 +10,8 @@ def depth_first_search(start):
 
         node = queue.pop()
         
-        if node in visited:
-            continue
+        #if node in visited:
+        #    continue
         
         if node.is_goal():
             break
@@ -19,11 +19,12 @@ def depth_first_search(start):
         visited.add(node)
         
         for child in node.children():
-            queue.append(child)
+            if child not in visited:
+                queue.append(child)
         
         # Coroutine hack to communicate algorithm state back to viz
         if (yield node, visited, queue) == -1:
             return
     
     # Coroutine hack to communicate algorithm state back to viz
-    signal = (yield node, visited, queue)
+    yield node, visited, queue

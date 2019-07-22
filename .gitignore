@@ -124,3 +124,7 @@ dmypy.json
 
 
 .venv/
+*.png
+*.gv
+*.png
+*.svg

@@ -28,5 +28,5 @@ def best_first_search(start):
             return
     
     # Coroutine hack to communicate algorithm state back to viz
-    signal = (yield node, visited, queue)
+    yield node, visited, queue
     
