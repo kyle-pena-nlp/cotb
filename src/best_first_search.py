@@ -3,6 +3,9 @@ from collections import deque
 
 def best_first_search(start):
     
+    if (yield) == -1:
+        return
+
     visited = InstrumentedSet(set())
     queue   = InstrumentedList([ start ])
     

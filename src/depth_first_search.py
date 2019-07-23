@@ -2,16 +2,16 @@ from collections import *
 from instrumentation import *
 
 def depth_first_search(start):
-    
+
+    if (yield) == -1:
+        return
+
     visited = InstrumentedSet(set())
     queue   = InstrumentedDeque(deque([ start ]))
-    
+
     while len(queue) > 0:
 
         node = queue.pop()
-        
-        #if node in visited:
-        #    continue
         
         if node.is_goal():
             break

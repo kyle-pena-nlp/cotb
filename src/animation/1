@@ -1,0 +1,5 @@
+digraph {
+	graph [rank=min]
+	brithdya [label=brithdya color=gray shape=doublecircle style=filled]
+	brithdya [label=brithdya color=gray shape=doublecircle style=filled]
+}
