@@ -162,9 +162,9 @@ class Grid:
         #fig, (img_plot, ops_plot, space_plot) = plt.subplots(3,1)
 
         fig = plt.figure()
-        img_plot = plt.subplot(221)
-        ops_plot = plt.subplot(223)
-        space_plot = plt.subplot(122)
+        img_plot = plt.subplot(111)
+        #ops_plot = plt.subplot(223)
+        #space_plot = plt.subplot(122)
 
         #fig = plt.figure(constrained_layout=True)
 
@@ -175,13 +175,13 @@ class Grid:
 
         img_plot.axis("off")
         img_plot.set_aspect('auto')
-        ops_plot.set_title("Operations Performed")
-        space_plot.set_title("Space Allocated")
+        #ops_plot.set_title("Operations Performed")
+        #space_plot.set_title("Space Allocated")
 
         self._fig = fig
         self._img = img_plot.imshow(self._grid)
-        self._ops_plot = ops_plot
-        self._space_plot = space_plot
+        #self._ops_plot = ops_plot
+        #self._space_plot = space_plot
 
         return self._fig
 
@@ -190,11 +190,12 @@ class Grid:
         self._mark_queued(queued)
         self._mark_visited(visited)
         self._mark_current(current)
-        self._mark_path(path)
+        if current.is_goal():
+            self._mark_path(path)
 
         self._img.set_data(self._grid)
-        self._ops_plot.plot(snapshot["ops"])
-        self._space_plot.plot(snapshot["space"])
+        #self._ops_plot.plot(snapshot["ops"])
+        #self._space_plot.plot(snapshot["space"])
         self._fig.canvas.draw_idle()
 
         plt.pause(0.001) # Trigger a draw update

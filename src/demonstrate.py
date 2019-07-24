@@ -7,17 +7,24 @@ from depth_first_search import depth_first_search
 from breadth_first_search import breadth_first_search
 from best_first_search import best_first_search
 from iterative_deepening import iterative_deepening
+from a_star_search import a_star_search
 import instrumentation
 
 algo_choice  = sys.argv[1]
 space_choice = sys.argv[2]
 
+if algo_choice == "bestfirst":
+    obstacles = [(5,15,33,35), (5,7,20,35), (13,15,20,35)]
+else:
+    obstacles = [(10,20,15,25), (5,15,30,35)]
+
 if space_choice == "grid":
-    graph = Grid((25,50), obstacles = [(10,20,15,25), (5,15,30,35)], start = (12,12), goal = (12,37))
+    graph = Grid((25,50), obstacles = obstacles, start = (12,12), goal = (12,37))
 elif space_choice == "puzzle":
     graph = PuzzleGraph(3)
 elif space_choice == "autocorrect":
-    graph = StringGraph("brithdya", allowed_transitions = "td")
+    canonical_string = "brithdya"
+    graph = StringGraph(canonical_string, allowed_transitions = "td")
 
 start = graph.start_node()
 
@@ -29,10 +36,12 @@ elif algo_choice == "bestfirst":
     algorithm = best_first_search(start)
 elif algo_choice == "iterativedeepening":
     algorithm = iterative_deepening(start)
+elif algo_choice == "astar":
+    algorithm = astar(start)
 
 next(algorithm)
 
-if space_choice == "grid":
+if space_choice == "grid" or space_choice == "autocorrect":
     def handle_close(evt):
         try:
             algorithm.send(-1)
@@ -47,12 +56,9 @@ while True:
     try:
         current, visited, queued = algorithm.send(0)
         i+=1
-        print(i)
-        graph.redraw("animation/{}".format(i), queued, visited, current, current.path(), None)
+        graph.redraw(queued, visited, current, current.path(), None)
         if current.is_goal():
             print("Goal!!!!")
-            snapshot = instrumentation.take_snapshot() 
-            #graph.redraw(queued, visited, current, current.path(), snapshot)
             break
     except StopIteration:
         print("Finished.")

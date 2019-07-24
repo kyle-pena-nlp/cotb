@@ -1,7 +1,9 @@
 from collections import namedtuple
 from graphviz import Digraph
 import nltk
-from english import letters, word_set
+from english import letters, word_set, word_list, smallest_distance_to_any_english_word
+from PIL import Image
+import matplotlib.pyplot as plt
 
 class String:
 
@@ -13,6 +15,7 @@ class String:
         self.graph = graph
         self.length = len(string)
         self.backlink = backlink
+        self._distance = None
         #self.add_to_graphviz()
 
     def children(self):
@@ -48,41 +51,13 @@ class String:
 
         return children
 
-    def add_to_graphviz(self):
-        self.add_node_to_graphviz()
-        self.add_backlink_to_graphviz()
-
-    def add_node_to_graphviz(self):
-        
-        if self.graph is None or self.graph.graphviz is None:
-            return
-
-        g = self.graph.graphviz
-        
-        is_root = self.backlink is None
-        is_goal = self.is_goal()
-
-        if is_goal:
-            g.node(self.string, self.string, shape = "doublecircle", style = "filled", color = "green")
-        elif is_root:
-            g.node(self.string, self.string, shape = "doublecircle", style = "filled", color = "gray")
-        else:
-            g.node(self.string, self.string, shape = "circle")
-
-    def add_backlink_to_graphviz(self):
-
-        if self.graph is None or self.graph.graphviz is None:
-            return
-
-        g = self.graph.graphviz
-        
-        is_root = self.backlink is None
-
-        if not is_root:
-            g.edge(self.backlink.parent.string, self.string, label = self.backlink.edit_description)   
-
     def is_goal(self):
         return self.string.lower() in word_set
+
+    def distance(self):
+        if self._distance is None:
+            self._distance = smallest_distance_to_any_english_word(self.string)
+        return self._distance
 
     def is_root(self):
         return self.backlink is None
@@ -113,18 +88,35 @@ class String:
 class StringGraph:
 
     def __init__(self, string, allowed_transitions = None):
-        self.graphviz = Digraph(format="svg")
+        self.graphviz = Digraph(format="png")
+        #self.graphviz.attr(rankdir='LR')
         self.graphviz.graph_attr.update(rank='min')
         self.initial_state = String(string, self)
         self.allowed_transitions = allowed_transitions or "idt"
         self.rendered_edges = set()
         self.rendered_nodes = set()
+        self._fig = None
+        self._img_plot = None
 
 
     def start_node(self):
         return self.initial_state
 
-    def redraw(self, filename, queued, visited, current, path, snapshot):
+    def init_viz(self):
+
+        fig = plt.figure()
+        img_plot = plt.subplot(111)
+
+        img_plot.axis("off")
+        #img_plot.set_aspect('auto')
+        img_plot.autoscale(enable=True) 
+
+        self._fig = fig
+        self._img_plot = img_plot.imshow([[0]])
+
+        return self._fig        
+
+    def redraw(self, queued, visited, current, path, snapshot):
 
         if self.graphviz is None:
             return
@@ -165,7 +157,7 @@ class StringGraph:
                 is_root = node.backlink is None
                 if not is_goal and not is_root:
                     g.node(node.string, node.string, shape = "circle", style = "filled", color = "yellow")
-                    g.edge(node.backlink.parent.string, node.string, color = "yellow", label = node.backlink.edit_description)
+                    #g.edge(node.backlink.parent.string, node.string, color = "yellow", label = node.backlink.edit_description)
 
         # Add the backlink between the current node and its previous if it hasn't already been rendered
         if not current.is_root():
@@ -176,8 +168,14 @@ class StringGraph:
         # Queue Rendering?
 
 
-        g.render(filename)
+        f = g.render()
+        img = Image.open(f)
+        self._img_plot.set_data(img)
+        self._fig.tight_layout()
+        self._fig.canvas.draw_idle()
 
+
+        plt.pause(0.001) # Trigger a draw update
 
 
     
