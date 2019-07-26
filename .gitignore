@@ -128,3 +128,5 @@ dmypy.json
 *.gv
 *.png
 *.svg
+
+.vscode/

@@ -10,6 +10,7 @@ class GridNode:
         self._grid = grid
         self._y, self._x = start
         self.parent = parent
+        self._cost = None
         INSTANCE_COUNT[0] += 1
 
     def __del__(self):
@@ -44,6 +45,18 @@ class GridNode:
     def distance(self):
         goal_y, goal_x = self._grid._goal
         return (self._y - goal_y) ** 2.0 + (self._x - goal_x) ** 2.0
+
+    def cost(self):
+        if self._cost is None:
+            cost = 0
+            x = self
+            while True:
+                cost += 1
+                if x.parent is None:
+                    break
+                x = x.parent
+            self._cost = cost
+        return self._cost
 
     def path(self):
         path = []

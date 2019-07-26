@@ -37,7 +37,7 @@ elif algo_choice == "bestfirst":
 elif algo_choice == "iterativedeepening":
     algorithm = iterative_deepening(start)
 elif algo_choice == "astar":
-    algorithm = astar(start)
+    algorithm = a_star_search(start)
 
 next(algorithm)
 
