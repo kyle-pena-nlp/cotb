@@ -31,6 +31,7 @@ class PuzzleState:
         self.backlink = backlink
         #self._add_to_graph_viz()
         self.string = str(self)
+        self.cost = None
 
     def children(self):
 
@@ -110,6 +111,16 @@ class PuzzleState:
                 break
             x = x.backlink.parent
         return path
+
+    def cost(self):
+        if self.cost is None:
+            cost = 0
+            x = self
+            while x.backlink is not None:
+                x = x.backlink.parent
+                cost += x.backlink.cost
+            self.cost = cost
+        return self.cost
 
     def copy(self):
         return PuzzleState(np.copy(self._state), self._graph)

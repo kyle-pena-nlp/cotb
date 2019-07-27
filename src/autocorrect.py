@@ -16,6 +16,7 @@ class String:
         self.length = len(string)
         self.backlink = backlink
         self._distance = None
+        self._cost = None
         #self.add_to_graphviz()
 
     def children(self):
@@ -61,6 +62,16 @@ class String:
 
     def is_root(self):
         return self.backlink is None
+
+    def cost(self):
+        if self._cost is None:
+            cost = 0
+            x = self
+            while x.backlink is not None:
+                x = x.backlink.parent
+                cost += x.backlink.cost
+            self._cost = cost
+        return self._cost           
 
     def path(self):
         path = [self]
