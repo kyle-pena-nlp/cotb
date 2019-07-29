@@ -3,7 +3,6 @@ from collections import namedtuple
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
-from instrumentation import ops, space
 from graphviz import Digraph
 
 class PuzzleState:
@@ -159,9 +158,6 @@ class PuzzleGraph:
 
         goal_state = PuzzleGraph.get_solved_state(side_length)
         self._goal = PuzzleState(goal_state, self)
-        
-        #self._start = self._goal.copy()
-        #self._start.shuffle(50)
 
         self._start = PuzzleState(np.asarray([ [2, 3, 0], [1, 4, 5], [7, 8, 6] ]), self, None)
 

@@ -100,7 +100,6 @@ class StringGraph:
 
     def __init__(self, string, allowed_transitions = None):
         self.graphviz = Digraph(format="png")
-        #self.graphviz.attr(rankdir='LR')
         self.graphviz.graph_attr.update(rank='min')
         self.initial_state = String(string, self)
         self.allowed_transitions = allowed_transitions or "idt"
@@ -119,7 +118,6 @@ class StringGraph:
         img_plot = plt.subplot(111)
 
         img_plot.axis("off")
-        #img_plot.set_aspect('auto')
         img_plot.autoscale(enable=True) 
 
         self._fig = fig
@@ -176,9 +174,7 @@ class StringGraph:
             if current_backedge not in self.rendered_edges:
                 g.edge(current_backedge[0], current_backedge[1], label = current.backlink.edit_description)
 
-        # Queue Rendering?
-
-
+        # Splat to matplotlib
         f = g.render()
         img = Image.open(f)
         self._img_plot.set_data(img)

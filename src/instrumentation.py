@@ -2,6 +2,14 @@ import math, time
 import wrapt
 from collections import deque
 
+"""
+I used these during development but later removed them.
+Hopefully you find them interesting.
+They are proxies for sets, deques, and lists that attempt
+to measure total space and total operations performed as the algorithms run
+"""
+
+
 INSTRUMENTED_COLLECTIONS = []
 INSTANCE_COUNT = [0]
 ops   = []

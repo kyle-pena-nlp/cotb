@@ -3,13 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from instrumentation import INSTANCE_COUNT
+from collections import namedtuple
 
 class GridNode:
 
-    def __init__(self, grid, start, parent = None):
+    Backlink = namedtuple("Backlink", ["direction", "parent", "cost"])
+
+    def __init__(self, grid, start, backlink = None):
         self._grid = grid
         self._y, self._x = start
-        self.parent = parent
+        self.backlink = backlink
         self._cost = None
         INSTANCE_COUNT[0] += 1
 
@@ -20,18 +23,18 @@ class GridNode:
 
         # 4-Neighbors, starting at 12 o clock and then clockwise
         
-        children = [
-            (self._y - 1, self._x + 0),
-            (self._y - 1, self._x + 1),
-            (self._y + 0, self._x + 1),
-            (self._y + 1, self._x + 1),
-            (self._y + 1, self._x + 0),
-            (self._y + 1, self._x - 1),
-            (self._y + 0, self._x - 1),
-            (self._y - 1, self._x - 1),
-        ]
+        children = {
+            "T":  (self._y - 1, self._x + 0),
+            "TR": (self._y - 1, self._x + 1),
+            "R":  (self._y + 0, self._x + 1),
+            "BR": (self._y + 1, self._x + 1),
+            "B":  (self._y + 1, self._x + 0),
+            "BL": (self._y + 1, self._x - 1),
+            "L":  (self._y + 0, self._x - 1),
+            "TL": (self._y - 1, self._x - 1),
+        }
 
-        return [ self._make_node(child) for child in children if self._grid._has_position(child) ]
+        return [ self._make_node(child, direction) for direction, child in children.items() if self._grid._has_position(child) ]
 
     def pos(self):
         return self._y, self._x
@@ -52,9 +55,9 @@ class GridNode:
             x = self
             while True:
                 cost += 1
-                if x.parent is None:
+                if x.backlink is None:
                     break
-                x = x.parent
+                x = x.backlink.parent
             self._cost = cost
         return self._cost
 
@@ -63,9 +66,9 @@ class GridNode:
         x = self
         while True:
             path.append(x)
-            if x.parent is None:
+            if x.backlink is None:
                 break
-            x = x.parent
+            x = x.backlink.parent
         return path
 
     # value comparison only
@@ -78,8 +81,9 @@ class GridNode:
     def __hash__(self):
         return hash((self._y, self._x))
 
-    def _make_node(self, pos):
-        return GridNode(self._grid, pos, self)
+    def _make_node(self, pos, direction):
+        backlink = GridNode.Backlink(direction = direction, parent= self, cost = 1.0)
+        return GridNode(self._grid, pos, backlink)
 
 class Grid:
 
@@ -172,29 +176,15 @@ class Grid:
             self._grid[y,x] = Grid.PATH
 
     def init_viz(self):
-        #fig, (img_plot, ops_plot, space_plot) = plt.subplots(3,1)
 
         fig = plt.figure()
         img_plot = plt.subplot(111)
-        #ops_plot = plt.subplot(223)
-        #space_plot = plt.subplot(122)
-
-        #fig = plt.figure(constrained_layout=True)
-
-        #gs = GridSpec(2, 2, figure=fig)
-        #img_plot = fig.add_subplot(gs[0, :])
-        #ops_plot   = fig.add_subplot(gs[1, 0])
-        #space_plot = fig.add_subplot(gs[1, 1])
 
         img_plot.axis("off")
         img_plot.set_aspect('auto')
-        #ops_plot.set_title("Operations Performed")
-        #space_plot.set_title("Space Allocated")
 
         self._fig = fig
         self._img = img_plot.imshow(self._grid)
-        #self._ops_plot = ops_plot
-        #self._space_plot = space_plot
 
         return self._fig
 
@@ -207,8 +197,6 @@ class Grid:
             self._mark_path(path)
 
         self._img.set_data(self._grid)
-        #self._ops_plot.plot(snapshot["ops"])
-        #self._space_plot.plot(snapshot["space"])
         self._fig.canvas.draw_idle()
 
         plt.pause(0.001) # Trigger a draw update

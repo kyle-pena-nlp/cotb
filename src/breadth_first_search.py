@@ -1,12 +1,12 @@
-from instrumentation import *
+from collections import deque
 
 def breadth_first_search(start):
 
     if (yield) == -1:
         return
     
-    visited = InstrumentedSet(set())
-    queue   = InstrumentedDeque(deque([ start ]))
+    visited = set()
+    queue   = deque([ start ])
 
     while len(queue) > 0:
 

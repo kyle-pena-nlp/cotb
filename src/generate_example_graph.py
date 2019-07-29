@@ -14,6 +14,3 @@ g.edge("BRTHDY", "BIRTHDY", label = "  insert(2,I)")
 g.edge("BIRTHDY", "BIRTHDAY", label = "  insert(7,A)")
 
 fn = g.render()
-
-#image = Image.open(fn)
-#image.show()

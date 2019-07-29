@@ -1,4 +1,3 @@
-from instrumentation import *
 from collections import deque
 from sortedcontainers import SortedList
 
@@ -8,7 +7,7 @@ def best_first_search(start):
     if (yield) == -1:
         return
 
-    visited = InstrumentedSet(set())
+    visited = set()
     queue   = SortedList([start], key = lambda x: x.distance())
     
     while len(queue) > 0:

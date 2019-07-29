@@ -1,14 +1,12 @@
 import sys, time
-from numpy.random import random
-from grid import *
-from puzzle import *
-from autocorrect import *
-from depth_first_search import depth_first_search
+from numpy.random         import random
+from grid                 import *
+from puzzle               import *
+from autocorrect          import *
+from depth_first_search   import depth_first_search
 from breadth_first_search import breadth_first_search
-from best_first_search import best_first_search
-from iterative_deepening import iterative_deepening
-from a_star_search import a_star_search
-import instrumentation
+from best_first_search    import best_first_search
+from a_star_search        import a_star_search
 
 algo_choice  = sys.argv[1]
 space_choice = sys.argv[2]
@@ -34,8 +32,6 @@ elif algo_choice == "breadthfirst":
     algorithm = breadth_first_search(start)
 elif algo_choice == "bestfirst":
     algorithm = best_first_search(start)
-elif algo_choice == "iterativedeepening":
-    algorithm = iterative_deepening(start)
 elif algo_choice == "astar":
     algorithm = a_star_search(start)
 
